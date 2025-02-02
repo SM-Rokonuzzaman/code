@@ -4,6 +4,9 @@ using namespace std;
 // Abstract class
 class AbstractEmployee {
     virtual void AskForPromotion() = 0;
+    virtual bool AskForLeave() = 0;
+    virtual string note() = 0;
+
 };
 
 class Employee:AbstractEmployee{
@@ -58,6 +61,15 @@ public:
         else
             cout << Name << " sorry! no promotion" << endl;
     }
+
+    bool AskForLeave(){
+        return true;
+
+    }
+    string note(){
+        return "Hello";
+
+    }
 };
 int main()
 {
@@ -65,6 +77,10 @@ int main()
     Employee employee2 = Employee("Partha","Data edge", 31);
     employee1.AskForPromotion();
     employee2.AskForPromotion();
+
+    if(employee2.AskForLeave())
+        cout << "You got leave!" << endl;
+        cout << employee1.note() << endl;
 
 
 }
