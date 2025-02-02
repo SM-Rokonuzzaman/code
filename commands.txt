@@ -7,6 +7,10 @@ To pull
 	$ git pull <url> <branch name> ie: git pull https://.... master
 git push
 
-	$ git remode add origin <url>
+	$ git remode add origin <url>			first time only
+
+	$ git add .
+	$ git status					to check the changes
+	$ git commit -m "message"
 	$ git branch -M <branch name> 			ie: git branch -M main
 	$ git git push -u origin <branch name> 		ie: git push -u origin main
