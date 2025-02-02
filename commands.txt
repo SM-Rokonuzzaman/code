@@ -2,3 +2,11 @@ Git command line basics..
 
 To check git version:
 	$ git --version
+
+To pull 
+	$ git pull <url> <branch name> ie: git pull https://.... master
+git push
+
+	$ git remode add origin <url>
+	$ git branch -M <branch name> 			ie: git branch -M main
+	$ git git push -u origin <branch name> 		ie: git push -u origin main
