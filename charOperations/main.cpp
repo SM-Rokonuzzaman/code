@@ -10,14 +10,15 @@
 
 using namespace std;
 
-
+char array1[2][5]={"1234","abcd"};
+char (*ptr)[5] = array1;
 
 
 int main()
 {
+    char *array3[3]={"adh","bei", "cfh"};
+char **p3 = array3;
+printf("%s, %s, %c, %c.\n", *p3 + 2, *(p3 + 2), **p3 + 2, **(p3 +2));
 
-    char str1[20] = "abcd", str2[20] = "ABCD", str3[20]="xyz";
-strcpy(str3 + 2, strcat(str1 + 2, str2 + 1));
-printf("%s.\n",str3);
      return 0;
 }
