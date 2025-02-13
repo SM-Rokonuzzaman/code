@@ -1,5 +1,5 @@
 /*
-    C++ program to demonstrate character arith,etic
+    C++ program to demonstrate character arithmetic
 */
 
 #include <iostream>
@@ -12,13 +12,11 @@ using namespace std;
 
 int main()
 {
-    struct Test1
-{
-    int b;
-    double c;
-    long d;
-}data, *p;
-
-cout << sizeof(data) << endl;;
+   unsigned char a = 0, b = 0, c = 0, d = 0;
+a = 7 ^ 3;
+b = 3 << 2;
+c = ~1;
+d = ~(a >> 1);
+printf("%u, %u, %u, %u, %u, %u.\n", a, b, c, a & b, a || b, d);
     return 0;
 }
