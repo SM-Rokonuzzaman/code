@@ -1,5 +1,5 @@
 /*
-    C++ program to demonstrate character arith,etic
+    C++ program to demonstrate character arithmetic
 */
 
 #include <iostream>
@@ -12,13 +12,14 @@ using namespace std;
 
 char array1[2][5]={"1234","abcd"};
 char (*ptr)[5] = array1;
+char *array5[3][3] =   {{"ABCD","EFGH","HIJK"},
+                        {"1234","2345","3456"},
+                        {"abcd","bcde","cdef"}};
+
 
 
 int main()
 {
-    char *array3[3]={"adh","bei", "cfh"};
-char **p3 = array3;
-printf("%s, %s, %c, %c.\n", *p3 + 2, *(p3 + 2), **p3 + 2, **(p3 +2));
-
+    cout << point5;
      return 0;
 }
