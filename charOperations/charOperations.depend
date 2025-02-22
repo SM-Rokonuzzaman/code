@@ -1,8 +1,9 @@
 # depslib dependency file v1.0
-1738573196 source:d:\rokon\mypracticecodes\charoperations\main.cpp
+1738821687 source:d:\rokon\mypracticecodes\charoperations\main.cpp
 	<iostream>
 	<string.h>
 	<stdio.h>
+	<math.h>
 
 1738602838 source:d:\cse study materials\mypracticecodes\charoperations\main.cpp
 	<iostream>
