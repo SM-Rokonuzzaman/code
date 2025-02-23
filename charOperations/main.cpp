@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <string>
 
 
 using namespace std;
@@ -16,6 +17,13 @@ char (*ptr)[5] = array1;
 char *array5[3][3] =   {{"ABCD","EFGH","HIJK"},
                         {"1234","2345","3456"},
                         {"abcd","bcde","cdef"}};
+
+const char *myArray (const char *array5)
+{
+    const char *myarray = array5;
+    cout << myarray << endl;
+    return myarray;
+}
 
 
 
@@ -37,6 +45,8 @@ for(int i = 0; i<3; i++)
     }
     printf("\n");
 }
+    cout << myArray ("Hello!!\n");
+    cout << ptr << endl;
     return 0;
 
 }
