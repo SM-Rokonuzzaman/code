@@ -29,13 +29,9 @@
 */
 
 #include <WiFi.h>
-#include <WiFiClient.h>
+#include <NetworkClient.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
-#include <LiquidCrystalIO.h>
-
-#include <IoAbstractionWire.h>
-#include <Wire.h>
 
 const char *ssid = "Motijheel-Guest";
 const char *password = "welcome2dataedge";
@@ -48,12 +44,14 @@ void handleRoot() {
   digitalWrite(led, 1);
   char temp[400];
   int sec = millis() / 1000;
-  int min = sec / 60;
-  int hr = min / 60;
+  int hr = sec / 3600;
+  int min = (sec / 60) % 60;
+  sec = sec % 60;
 
-  snprintf(temp, 400,
+  snprintf(
+    temp, 400,
 
-           "<html>\
+    "<html>\
   <head>\
     <meta http-equiv='refresh' content='5'/>\
     <title>ESP32 Demo</title>\
@@ -62,15 +60,14 @@ void handleRoot() {
     </style>\
   </head>\
   <body>\
-    <h1>Welcome to Data center monitor </h1>\
+    <h1>Hello from ESP32!</h1>\
     <p>Uptime: %02d:%02d:%02d</p>\
-    <h1>Temperature Graph (DEMO) </h1>\
     <img src=\"/test.svg\" />\
   </body>\
 </html>",
 
-           hr, min % 60, sec % 60
-          );
+    hr, min, sec
+  );
   server.send(200, "text/html", temp);
   digitalWrite(led, 0);
 }
@@ -93,22 +90,8 @@ void handleNotFound() {
   server.send(404, "text/plain", message);
   digitalWrite(led, 0);
 }
-LiquidCrystalI2C_RS_EN(lcd, 0x27, false)
+
 void setup(void) {
-
-
-  lcd.configureBacklightPin(3);
-  lcd.backlight();
-  
-  // for i2c variants, this must be called first.
-  Wire.begin();
-
-  // set up the LCD's number of columns and rows, must be called.
-  lcd.begin(16, 2);
-  // Print a message to the LCD.
-  lcd.print("hello over i2c!");
-
- 
   pinMode(led, OUTPUT);
   digitalWrite(led, 0);
   Serial.begin(115200);
@@ -124,12 +107,8 @@ void setup(void) {
 
   Serial.println("");
   Serial.print("Connected to ");
-  lcd.clear();
-  lcd.print("connected");
   Serial.println(ssid);
   Serial.print("IP address: ");
-  lcd.setCursor(0,1);
-  lcd.print(WiFi.localIP());
   Serial.println(WiFi.localIP());
 
   if (MDNS.begin("esp32")) {
@@ -148,7 +127,7 @@ void setup(void) {
 
 void loop(void) {
   server.handleClient();
-  delay(2);//allow the cpu to switch to other tasks
+  delay(2);  //allow the cpu to switch to other tasks
 }
 
 void drawGraph() {
