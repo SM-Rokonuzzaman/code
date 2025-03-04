@@ -16,7 +16,7 @@ int main()
 {
     //push(), pop(),size(), front(),back()
     queue<int>myQueue;
-    queue<uint8_t>myQ;
+    queue<uint8_t>myQ; //uint8_t = unsigned int of 8 bit
 
     myQueue.push(1);
     myQueue.push(2);
@@ -25,7 +25,7 @@ int main()
 
     myQ.push(10);
     myQ.push(20);
-    myQ.push(30);
+    myQ.push(300); // myQ can only hold max val of 256. out put will be 300-256=44
 
     cout << "The size of the Queue is: " << myQueue.size() << endl;
     cout << "The first element is: " << myQueue.front() << endl;
