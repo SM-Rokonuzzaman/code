@@ -37,8 +37,8 @@
 #include <IoAbstractionWire.h>
 #include <Wire.h>
 
-const char *ssid = "Rokon 2.4G";
-const char *password = "01303294532";
+const char *ssid = "Motijheel-Guest";
+const char *password = "welcome2dataedge";
 
 WebServer server(80);
 
