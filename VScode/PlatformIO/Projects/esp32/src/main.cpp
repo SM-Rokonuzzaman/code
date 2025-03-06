@@ -7,10 +7,11 @@
 #include <ArduinoJson.h>
 
 
+
 LiquidCrystal_I2C lcd(0x27,16,2);
 
-const char* ssid = "Rokon 2.4G";
-const char* pass = "01303294532";
+const char* ssid = "Motijheel-Guest";
+const char* pass = "welcome2dataedge";
 const char* ntp = "pool.ntp.org";
 
 const char* api_link = "https://api.openweathermap.org/data/2.5/weather?lat=23.8041&lon=90.4152&appid=c26bbe8c705ee0c495792e5c836656a8";
