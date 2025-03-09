@@ -1,0 +1,27 @@
+Important C Programming Topics:
+
+number systems conversion
+, data types and its range,
+signed vs unsigned,
+ const, 
+typedef vs #define,
+
+ static variable,
+ static functions,
+ pointers, double pointer, void pointer, relationship of array and pointer, variable increment/decrement, i++ vs ++i, pointer increment, do-while, break-continue, integer constant, character constant, strlen(), buffer overflow, bitwise operators, conditional expressions, 2D arrays, infinite loops, initialization of arrays, garbage values, switch-case, macro usage, structures, unions,
+ printf and scanf usage, 
+sizeof operator, 
+Recursion, 
+fopen() and its modes, 
+type casting,
+ comma operator,
+find errors in this code,
+ determine output of this code. 
+you can practice questions by searching in google.
+
+Data Structures and Algorithms:
+Sorting and Searching (describe and write code), 
+Stack, 
+Queue, Tree, Linked-List vs Arrays, Hash Table, string reverse, and other problem solving skills.
+
+Networking থেকে Layers, Transport Layer, Network Layer, IP addresses, Subnetting calculation, Host Address, Network Address, Communication from one host to another host, Protocols, ARP, MAC address, Routing, TCP vs UDP, Port Numbers, etc.
