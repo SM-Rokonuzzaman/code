@@ -1,217 +1,70 @@
-#include <stack>
-//#include <iostream>
-//#include <String>
+/*
+ https://www.electronicwings.com/
+  SD Card Interface code for ESP32
+  SPI Pins of ESP32 SD card as follows:
+  CS    = 5;
+  MOSI  = 23;
+  MISO  = 19;
+  SCK   = 18; 
+*/
 
-//using namespace std;
+#include <SPI.h>
+#include <SD.h>
+
+File myFile;
+const int CS = 5;
+
+void WriteFile(const char * path, const char * message){
+  // open the file. note that only one file can be open at a time,
+  // so you have to close this one before opening another.
+  myFile = SD.open(path, FILE_WRITE);
+  // if the file opened okay, write to it:
+  if (myFile) {
+    Serial.printf("Writing to %s ", path);
+    myFile.println(message);
+    myFile.close(); // close the file:
+    Serial.println("completed.");
+  } 
+  // if the file didn't open, print an error:
+  else {
+    Serial.println("error opening file ");
+    Serial.println(path);
+  }
+}
 
 
-int val = 100;
-int *ptr = &val;
-const char *array="This is a string";
-
-struct Node {
-  int data;
-  Node* next;
-};
-
-class LinkedList {
-  Node* head;
-
-public:
-  LinkedList() : head(NULL) {}
-
-  void insertAtBeginning(int value) {
-        Node* newNode = new Node();
-        newNode->data = value;
-        newNode->next = head;
-        head = newNode;
+void ReadFile(const char * path){
+  // open the file for reading:
+  myFile = SD.open(path);
+  if (myFile) {
+     Serial.printf("Reading file from %s\n", path);
+     // read from the file until there's nothing else in it:
+    while (myFile.available()) {
+      Serial.write(myFile.read());
     }
-  void insertAtEnd(int value) {
-        Node* newNode = new Node();
-        newNode->data = value;
-        newNode->next = NULL;
-
-        // If the list is empty, update the head to the new node
-        if (!head) {
-            head = newNode;
-            return;
-        }
-
-        // Traverse to the last node
-        Node* temp = head;
-        while (temp->next) {
-            temp = temp->next;
-        }
-
-        // Update the last node's next to the new node
-        temp->next = newNode;
-    }
-
-    // Function to Insert a new node at a specific position in the list
-    void insertAtPosition(int value, int position) {
-        if (position < 1) {
-            Serial.printf("Position should be >= 1.\n");
-            //cout << "Position should be >= 1." << endl;
-            return;
-        }
-
-        if (position == 1) {
-            insertAtBeginning(value);
-            return;
-        }
-
-        Node* newNode = new Node();
-        newNode->data = value;
-
-        // Traverse to the node before the desired position
-        Node* temp = head;
-        for (int i = 1; i < position - 1 && temp; ++i) {
-            temp = temp->next;
-        }
-
-        // If the position is out of range, print an error message
-        if (!temp) {
-            //cout << "Position out of range." << endl;
-            Serial.printf("Position out of range.\n");
-            delete newNode;
-            return;
-        }
-
-        // Insert the new node at the desired position
-        newNode->next = temp->next;
-        temp->next = newNode;
-    }
-
-    // Function to Delete the first node of the list
-    void deleteFromBeginning() {
-        if (!head) {
-            //cout << "List is empty." << endl;
-            Serial.printf("List is empty\n");
-            return;
-        }
-
-        Node* temp = head;
-        head = head->next;
-        delete temp;
-    }
-
-    // Function to Delete the last node of the list
-    void deleteFromEnd() {
-        if (!head) {
-            //cout << "List is empty." << endl;
-            Serial.printf("This is empty\n");
-            return;
-        }
-
-        if (!head->next) {
-            delete head;
-            head = NULL;
-            return;
-        }
-
-        // Traverse to the second-to-last node
-        Node* temp = head;
-        while (temp->next->next) {
-            temp = temp->next;
-        }
-
-        //  Delete the last node
-        delete temp->next;
-        // Set the second-to-last node's next to NULL
-        temp->next = NULL;
-    }
-
-    // Function to Delete a node at a specific position in the list
-    void deleteFromPosition(int position) {
-        if (position < 1) {
-            //cout << "Position should be >= 1." << endl;
-            Serial.printf("Position should be >= 1.\n");
-            return;
-        }
-
-        if (position == 1) {
-            deleteFromBeginning();
-            return;
-        }
-
-        Node* temp = head;
-        for (int i = 1; i < position - 1 && temp; ++i) {
-            temp = temp->next;
-        }
-
-        if (!temp || !temp->next) {
-            //cout << "Position out of range." << endl;
-            Serial.printf("Position out of range.\n");
-            return;
-        }
-        // Save the node to be deleted
-        Node* nodeToDelete = temp->next;
-        // Update the next pointer
-        temp->next = temp->next->next;
-         // Delete the node
-        delete nodeToDelete;
-    }
-
-    // Function to print the nodes of  the linked list
-    void display() {
-        if (!head) {
-            //cout << "List is empty." << endl;
-
-            return;
-        }
-
-        Node* temp = head;
-        while (temp) {
-            //cout << temp->data << " -> ";
-            Serial.println(temp->data);
-            temp = temp->next;
-        }
-        //cout << "NULL" << endl;
-        Serial.printf("NULL");
-    }
-};
+    myFile.close(); // close the file:
+  } 
+  else {
+    // if the file didn't open, print an error:
+    Serial.println("error opening test.txt");
+  }
+}
 
 void setup() {
-  Serial.begin(115200);
-  // put your setup code here, to run once:
+  Serial.begin(9600);    // Set serial baud rate to 9600
+  delay(500);
+  while (!Serial) { ; }  // wait for serial port to connect. Needed for native USB port only
+  Serial.println("Initializing SD card...");
+  if (!SD.begin(CS)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
 
+  WriteFile("/test.txt", "ElectronicWings.com");
+  ReadFile("/test.txt");
 }
 
 void loop() {
-
-  LinkedList list1;
-
-    // Insert elements at the end
-    list1.insertAtEnd(10);
-    list1.insertAtEnd(20);
-
-    // Insert element at the beginning
-    list1.insertAtBeginning(5);
-
-    // Insert element at a specific position
-    list1.insertAtPosition(15, 3);
-
-    Serial.print("Linked list after insertions: ");
-    list1.display();
-
-    // Delete element from the beginning
-    list1.deleteFromBeginning();
-    Serial.printf("Linked list after deleting from beginning: ");
-    list1.display();
-
-    // Delete element from the end
-    list1.deleteFromEnd();
-    Serial.printf("Linked list after deleting from end: ");
-    list1.display();
-
-    // Delete element from a specific position
-    list1.deleteFromPosition(2);
-    Serial.printf("Linked list after deleting from position 2: ");
-    list1.display();
-  
-
-  
-  delay(1000);
-  // put your main code here, to run repeatedly:
-
+  // nothing happens after setup
 }
