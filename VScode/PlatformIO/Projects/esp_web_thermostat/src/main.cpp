@@ -1,21 +1,49 @@
 
+/*
+ Author: S M Rokonuzzaman/
+  SD Card Interface code for ESP32
+  SPI Pins of ESP32 SD card as follows:
+  CS    = 5;
+  MOSI  = 23;
+  MISO  = 19;
+  SCK   = 18; 
+  -------------
+  DHT11 Data_pin = 22;
+
+*/
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include "DHT.h"
 #include <HTTPClient.h>
+#include <SPI.h>
+#include <SD.h>
+#include "time.h"
 
 
 #define LED_R 26
 #define LED_G 14
+#define t_sensor 22
+
+File myFile;        //SD card 
+const int CS = 5;   //SD card
+
 void green_blink();
 void red_blink();
 void check_flag(float tem);
 void http_post(String load);
+void WriteFile(const char * path, const char * message); 
+void ReadFile(const char * path);
+void printLocalTime();
+
 
 // REPLACE WITH YOUR NETWORK CREDENTIALS
 const char* ssid = "Rokon 2.4G";
 const char* password = "01303294532";
+// NTP stuff
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 0;
+const int   daylightOffset_sec = 3600;
 
 // Default Threshold Temperature Value
 String inputMessage = "25.0";
@@ -75,7 +103,7 @@ const long interval = 5000;
 void setup() {
   Serial.begin(115200);
   //temperature sensor
-  dht.setup(23);
+  dht.setup(t_sensor);
   //LED pins
   pinMode(LED_R,OUTPUT);
   pinMode(LED_G,OUTPUT);
@@ -118,7 +146,16 @@ void setup() {
   server.onNotFound(notFound);
   server.begin();
 
-  
+  Serial.println("Initializing SD card...");
+  if (!SD.begin(CS)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
+
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  printLocalTime();
+
 }
 
 void loop() {
@@ -129,13 +166,7 @@ void loop() {
     // Temperature in Celsius degrees 
     float temperature = dht.getTemperature();
     Serial.print(temperature);
-    Serial.println(" *C");
-    
-    // Temperature in Fahrenheit degrees
-    /*float temperature = sensors.getTempFByIndex(0);
-    Serial.print(temperature);
-    Serial.println(" *F");*/
-    
+    Serial.println(" *C");  
     lastTemperature = String(temperature);
     
     // Check if temperature is above threshold and if it needs to trigger output
@@ -145,6 +176,8 @@ void loop() {
       Serial.println(message);
       http_post(String(temperature));
       triggerActive = true;
+      WriteFile("/alarm.txt", "Alarm triggered!!");
+      ReadFile("/alarm.txt");
       
       red_blink();
     }
@@ -155,6 +188,8 @@ void loop() {
       Serial.println(message);
       
       triggerActive = false;
+      WriteFile("/alarm.txt", "Alarm deactivated!!");
+      ReadFile("/alarm.txt");
       
       green_blink();
       
@@ -181,6 +216,7 @@ void red_blink(){
   }
  
 }
+/*
 void check_flag(float tem){
 float temp = tem;
 if(temp > inputMessage.toFloat()){
@@ -189,15 +225,14 @@ if(temp > inputMessage.toFloat()){
     triggerActive = false;
   }
 }
+  */
 
-void http_post(String load){
+void http_post(String text){
   //http stuff
-  String t = load;
+  String t = text;
   HTTPClient http;
-  String baseurl = "https://api.callmebot.com/whatsapp.php?phone=8801303294532&text=";
-  String msg = "The+Temp+is+"+t;
-  String key = "&apikey=6430232";
-  http.begin(baseurl+msg+key);
+  String url = "https://api.callmebot.com/whatsapp.php?phone=8801303294532&text=The+Temp+is+"+t+"&apikey=6430232";
+  http.begin(url);
   int httpCode = http.GET();
 
   // httpCode will be negative on error
@@ -216,4 +251,75 @@ void http_post(String load){
 
   http.end();
   ///// http stuff ends
+}
+
+void WriteFile(const char * path, const char * message){
+
+  // open the file. note that only one file can be open at a time,
+  // so you have to close this one before opening another.
+  myFile = SD.open(path, FILE_APPEND);
+  // if the file opened okay, write to it:
+  if (myFile) {
+    Serial.printf("Writing to %s ", path);
+    myFile.println(message);
+    myFile.close(); // close the file:
+    Serial.println("completed.");
+    
+  } 
+  // if the file didn't open, print an error:
+  else {
+    Serial.println("error opening file ");
+    Serial.println(path);
+  }
+}
+
+void ReadFile(const char * path){
+  // open the file for reading:
+  myFile = SD.open(path);
+  if (myFile) {
+     Serial.printf("Reading file from %s\n", path);
+     // read from the file until there's nothing else in it:
+    while (myFile.available()) {
+      Serial.write(myFile.read());
+    }
+    myFile.close(); // close the file:
+  } 
+  else {
+    // if the file didn't open, print an error:
+    Serial.println("error opening test.txt");
+  }
+}
+
+void printLocalTime(){
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return;
+  }
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+  Serial.print("Day of week: ");
+  Serial.println(&timeinfo, "%A");
+  Serial.print("Month: ");
+  Serial.println(&timeinfo, "%B");
+  Serial.print("Day of Month: ");
+  Serial.println(&timeinfo, "%d");
+  Serial.print("Year: ");
+  Serial.println(&timeinfo, "%Y");
+  Serial.print("Hour: ");
+  Serial.println(&timeinfo, "%H");
+  Serial.print("Hour (12 hour format): ");
+  Serial.println(&timeinfo, "%I");
+  Serial.print("Minute: ");
+  Serial.println(&timeinfo, "%M");
+  Serial.print("Second: ");
+  Serial.println(&timeinfo, "%S");
+
+  Serial.println("Time variables");
+  char timeHour[3];
+  strftime(timeHour,3, "%H", &timeinfo);
+  Serial.println(timeHour);
+  char timeWeekDay[10];
+  strftime(timeWeekDay,10, "%A", &timeinfo);
+  Serial.println(timeWeekDay);
+  Serial.println();
 }
