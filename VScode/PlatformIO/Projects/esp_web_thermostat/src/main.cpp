@@ -8,7 +8,7 @@
 #define LED_G 14
 void green_blink();
 void red_blink();
-
+void check_flag(float tem);
 
 // REPLACE WITH YOUR NETWORK CREDENTIALS
 const char* ssid = "Rokon 2.4G";
@@ -138,7 +138,9 @@ void loop() {
       String message = String("Temperature above threshold. Current temperature: ") + 
                             String(temperature) + String("C");
       Serial.println(message);
-      triggerActive = true;
+      
+      //triggerActive = true;
+      //check_flag(temperature);
       red_blink();
     }
     // Check if temperature is below threshold and if it needs to trigger output
@@ -146,10 +148,13 @@ void loop() {
       String message = String("Temperature below threshold. Current temperature: ") + 
                             String(temperature) + String(" C");
       Serial.println(message);
-      triggerActive = false;
+      
+      //triggerActive = false;
+      //check_flag(temperature);
       green_blink();
       
     }
+    check_flag(temperature);
   }
 }
 
@@ -170,4 +175,12 @@ void red_blink(){
     delay(50);
   }
  
+}
+void check_flag(float tem){
+float temp = tem;
+if(temp > inputMessage.toFloat()){
+  triggerActive = true;
+  }else{
+    triggerActive = false;
+  }
 }
