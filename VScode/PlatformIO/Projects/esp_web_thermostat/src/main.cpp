@@ -3,12 +3,15 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include "DHT.h"
+#include <HTTPClient.h>
+
 
 #define LED_R 26
 #define LED_G 14
 void green_blink();
 void red_blink();
 void check_flag(float tem);
+void http_post(String load);
 
 // REPLACE WITH YOUR NETWORK CREDENTIALS
 const char* ssid = "Rokon 2.4G";
@@ -114,6 +117,8 @@ void setup() {
   });
   server.onNotFound(notFound);
   server.begin();
+
+  
 }
 
 void loop() {
@@ -138,9 +143,9 @@ void loop() {
       String message = String("Temperature above threshold. Current temperature: ") + 
                             String(temperature) + String("C");
       Serial.println(message);
+      http_post(String(temperature));
+      triggerActive = true;
       
-      //triggerActive = true;
-      //check_flag(temperature);
       red_blink();
     }
     // Check if temperature is below threshold and if it needs to trigger output
@@ -149,12 +154,12 @@ void loop() {
                             String(temperature) + String(" C");
       Serial.println(message);
       
-      //triggerActive = false;
-      //check_flag(temperature);
+      triggerActive = false;
+      
       green_blink();
       
     }
-    check_flag(temperature);
+    
   }
 }
 
@@ -183,4 +188,32 @@ if(temp > inputMessage.toFloat()){
   }else{
     triggerActive = false;
   }
+}
+
+void http_post(String load){
+  //http stuff
+  String t = load;
+  HTTPClient http;
+  String baseurl = "https://api.callmebot.com/whatsapp.php?phone=8801303294532&text=";
+  String msg = "The+Temp+is+"+t;
+  String key = "&apikey=6430232";
+  http.begin(baseurl+msg+key);
+  int httpCode = http.GET();
+
+  // httpCode will be negative on error
+  if(httpCode > 0) {
+    // file found at server
+    if(httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      Serial.println(payload);
+    } else {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+    }
+  } else {
+    Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+  }
+
+  http.end();
+  ///// http stuff ends
 }
