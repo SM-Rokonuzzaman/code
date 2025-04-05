@@ -249,4 +249,7 @@
  C:/Users/ACER/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src/SPI.h \
  C:/Users/ACER/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-spi.h \
  C:/Users/ACER/.platformio/packages/framework-arduinoespressif32/libraries/SD/src/SD.h \
- C:/Users/ACER/.platformio/packages/framework-arduinoespressif32/libraries/SD/src/sd_defines.h
+ C:/Users/ACER/.platformio/packages/framework-arduinoespressif32/libraries/SD/src/sd_defines.h \
+ C:/Users/ACER/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src/Wire.h \
+ C:/Users/ACER/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal.h \
+ .pio/libdeps/esp32doit-devkit-v1/LiquidCrystal_I2C/LiquidCrystal_I2C.h

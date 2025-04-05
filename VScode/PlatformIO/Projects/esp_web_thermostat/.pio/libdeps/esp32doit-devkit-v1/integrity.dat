@@ -1,2 +1,4 @@
-https://github.com/markruys/arduino-DHT.git
+LiquidCrystal_I2C
 ESPAsyncWebServer-esphome
+https://github.com/markruys/arduino-DHT.git
+NTPClient

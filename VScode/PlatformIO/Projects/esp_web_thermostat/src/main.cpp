@@ -18,23 +18,26 @@
 #include <HTTPClient.h>
 #include <SPI.h>
 #include <SD.h>
-#include "time.h"
-
+#include "time.h" // ntp time
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 
 #define LED_R 26
 #define LED_G 14
 #define t_sensor 22
+#define I2C_SDA 32
+#define I2C_SCL 33
 
 File myFile;        //SD card 
 const int CS = 5;   //SD card
 
-void green_blink();
-void red_blink();
-void check_flag(float tem);
+void green_blink(int times);
+void red_blink(int times);
 void http_post(String load);
-void WriteFile(const char * path, const char * message); 
+void WriteFile(const char * path, const char * message, const char * mode); 
 void ReadFile(const char * path);
 void printLocalTime();
+void lcd_print(int x, int y, const char * msg);
 
 
 // REPLACE WITH YOUR NETWORK CREDENTIALS
@@ -42,12 +45,12 @@ const char* ssid = "Rokon 2.4G";
 const char* password = "01303294532";
 // NTP stuff
 const char* ntpServer = "pool.ntp.org";
-const long  gmtOffset_sec = 0;
-const int   daylightOffset_sec = 3600;
+const long  gmtOffset_sec = 21600;
+const int   daylightOffset_sec = 0;
 
 // Default Threshold Temperature Value
-String inputMessage = "25.0";
-String lastTemperature;
+String inputMessage = "35.0";
+String lastTemperature,lastHumidity;
 String enableArmChecked = "checked";
 String inputMessage2 = "true";
 DHT dht;
@@ -58,8 +61,9 @@ const char index_html[] PROGMEM = R"rawliteral(
   <title>Temperature Threshold Output Control</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   </head><body>
-  <h2>DS18B20 Temperature</h2> 
+  <h2>DHT11 Temperature</h2> 
   <h3>%TEMPERATURE% &deg;C</h3>
+  <h4>%HUMIDITY%</H4>
   <h2>ESP Arm Trigger</h2>
   <form action="/get">
     Temperature Threshold <input type="number" step="0.1" name="threshold_input" value="%THRESHOLD%" required><br>
@@ -86,6 +90,9 @@ String processor(const String& var){
   else if(var == "ENABLE_ARM_INPUT"){
     return enableArmChecked;
   }
+  else if(var == "HUMIDITY"){
+    return lastHumidity;
+  }
   return String();
 }
 
@@ -95,13 +102,23 @@ bool triggerActive = false;
 const char* PARAM_INPUT_1 = "threshold_input";
 const char* PARAM_INPUT_2 = "enable_arm_input";
 
-// Interval between sensor readings. Learn more about ESP32 timers: https://RandomNerdTutorials.com/esp32-pir-motion-sensor-interrupts-timers/
+
 unsigned long previousMillis = 0;     
 const long interval = 5000;    
 
 
+LiquidCrystal_I2C lcd(0x27,16,2);
+
 void setup() {
   Serial.begin(115200);
+  // LCD section
+  Wire.begin(I2C_SDA,I2C_SCL);
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0,0);
+  lcd.print("I am alive!");
+
+
   //temperature sensor
   dht.setup(t_sensor);
   //LED pins
@@ -110,13 +127,21 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
+  lcd_print(0,0,"Wifi connecting!!");
   if (WiFi.waitForConnectResult() != WL_CONNECTED) {
     Serial.println("WiFi Failed!");
+    lcd_print(0,0,"WiFi Failed!");
+    red_blink(5);
     return;
   }
   Serial.println();
   Serial.print("ESP IP Address: http://");
   Serial.println(WiFi.localIP());
+  lcd.clear();
+  lcd_print(0,0,"WiFi IP:");
+  lcd.setCursor(0,1);
+  lcd.print(WiFi.localIP());
+  green_blink(5);
   
   
   // Send web page to client
@@ -149,9 +174,14 @@ void setup() {
   Serial.println("Initializing SD card...");
   if (!SD.begin(CS)) {
     Serial.println("initialization failed!");
+    for(int i = 0; i < 10; i++){
+      red_blink(10);
+      delay(200);
+    }
     return;
   }
-  Serial.println("initialization done.");
+  	Serial.println("initialization done.");
+			green_blink(2);
 
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   printLocalTime();
@@ -162,12 +192,13 @@ void loop() {
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
-    //sensors.requestTemperatures();
     // Temperature in Celsius degrees 
     float temperature = dht.getTemperature();
+    float humidity = dht.getHumidity();
     Serial.print(temperature);
     Serial.println(" *C");  
     lastTemperature = String(temperature);
+    lastHumidity = String(humidity);
     
     // Check if temperature is above threshold and if it needs to trigger output
     if(temperature > inputMessage.toFloat() && inputMessage2 == "true" && !triggerActive){
@@ -176,10 +207,11 @@ void loop() {
       Serial.println(message);
       http_post(String(temperature));
       triggerActive = true;
-      WriteFile("/alarm.txt", "Alarm triggered!!");
+      WriteFile("/alarm.txt", "Alarm triggered!!","FILE_APPEND");
+      WriteFile("/temp_data.txt", String(temperature).c_str(),"FILE_APPEND");
       ReadFile("/alarm.txt");
       
-      red_blink();
+      red_blink(5);
     }
     // Check if temperature is below threshold and if it needs to trigger output
     else if((temperature < inputMessage.toFloat()) && inputMessage2 == "true" && triggerActive) {
@@ -188,44 +220,31 @@ void loop() {
       Serial.println(message);
       
       triggerActive = false;
-      WriteFile("/alarm.txt", "Alarm deactivated!!");
+      WriteFile("/alarm.txt", "Alarm deactivated!!","FILE_APPEND");
       ReadFile("/alarm.txt");
       
-      green_blink();
+      green_blink(5);
       
     }
-    
   }
 }
 
-void green_blink(){
-  for(int i = 0; i < 5; i++){
+void green_blink(int times){
+  for(int i = 0; i < times; i++){
     digitalWrite(LED_G, HIGH);
     delay(50);
-    digitalWrite(LED_G, LOW);
-    delay(50);
-  }
- 
+		digitalWrite(LED_G, LOW);
+    delay(50); 
+  }   
 }
-void red_blink(){
-  for(int i = 0; i < 5; i++){
+void red_blink(int times){
+  for(int i = 0; i < times; i++){
     digitalWrite(LED_R, HIGH);
     delay(50);
-    digitalWrite(LED_R, LOW);
-    delay(50);
-  }
- 
-}
-/*
-void check_flag(float tem){
-float temp = tem;
-if(temp > inputMessage.toFloat()){
-  triggerActive = true;
-  }else{
-    triggerActive = false;
+		digitalWrite(LED_R, LOW);
+    delay(50);   
   }
 }
-  */
 
 void http_post(String text){
   //http stuff
@@ -253,11 +272,11 @@ void http_post(String text){
   ///// http stuff ends
 }
 
-void WriteFile(const char * path, const char * message){
+void WriteFile(const char * path, const char * message,const char * mode){
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
-  myFile = SD.open(path, FILE_APPEND);
+  myFile = SD.open(path, mode);
   // if the file opened okay, write to it:
   if (myFile) {
     Serial.printf("Writing to %s ", path);
@@ -322,4 +341,9 @@ void printLocalTime(){
   strftime(timeWeekDay,10, "%A", &timeinfo);
   Serial.println(timeWeekDay);
   Serial.println();
+}
+
+void lcd_print(int x, int y, const char * msg){
+  lcd.setCursor(x,y);
+  lcd.print(msg);
 }
